@@ -20,11 +20,10 @@ const DeployedPatch = () => {
             const Address = "0xC73b335Daeb32f4df2635aA821A4B8532a18EC9c";
             let contract = new web3.eth.Contract(ABI, Address);
             setContractdata(contract);
-            let temp = await window.contract.methods.Developer().call();
+            let temp = await contract.methods.Developer().call();
             temp = temp.filter((val, ind) => {
                 return val.deploy == 'deployed'
             });
-            console.log(temp, "Deployed");
             setData(temp);
             $(function () {
                 $('#Deployed-Table').DataTable();
@@ -48,7 +47,7 @@ const DeployedPatch = () => {
     }
 
     return (
-        <div className="container">
+        <div className="container table-responsive">
             <table className="table table-light table-striped mt-3" id="Deployed-Table">
                 <thead className="table-primary">
                     <tr>
@@ -60,15 +59,19 @@ const DeployedPatch = () => {
                     </tr>
                 </thead>
                 <tbody className="table-group-divider">
-                    {data.map((val, ind) => {
+                    {data.reverse().map((val, ind) => {
                         return (
                             <tr key={ind}>
                                 <td>{ind + 1}</td>
                                 <td>{val.patch_name}</td>
                                 <td>
                                     <ul>
-                                        <li>{val.bugs.join(',')}</li>
-                                        <li>{val.features.join(',')}</li>
+                                        {val.bugs.map((bug, index) => (
+                                            <li key={`bug-${index}`}>{bug}<br /></li>
+                                        ))}
+                                        {val.features.map((feature, index) => (
+                                            <li key={`feature-${index}`}>{feature}<br /></li>
+                                        ))}
                                     </ul>
                                 </td>
                                 <td>{val.deploytime}</td>

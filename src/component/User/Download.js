@@ -20,11 +20,10 @@ const DownloadPatch = () => {
             const Address = "0xC73b335Daeb32f4df2635aA821A4B8532a18EC9c";
             let contract = new web3.eth.Contract(ABI, Address);
             setContractdata(contract);
-            let temp = await window.contract.methods.Developer().call();
+            let temp = await contract.methods.Developer().call();
             temp = temp.filter((val, ind) => {
                 return val.deploy == 'deployed'
             });
-            console.log(temp, "Deployed");
             setData(temp);
             $(function () {
                 $('#Deployed-Table').DataTable();
@@ -33,6 +32,7 @@ const DownloadPatch = () => {
         Connection();
 
     }, []);
+    // console.log('hii',contractdata);
 
     function handledownload(varible) {
         const fileBlob = new Blob([new Uint8Array(Web3.utils.hexToBytes(varible))], { type: 'application/octet-stream' });
@@ -48,7 +48,7 @@ const DownloadPatch = () => {
     }
 
     return (
-        <div className="container mt-2">
+        <div className="container table-responsive mt-2">
             <table className="table table-light table-striped table-hover" id="Deployed-Table">
                 <thead className="table-primary">
                     <tr>

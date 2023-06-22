@@ -42,12 +42,12 @@ const ImageAndForm = () => {
 
   return (
 
-    <div className="container my-5">
+    <div className="container ">
       <div className="row">
         <div className="col-md-6">
           <img src="./Images/Loginimg.jpg" className="img-fluid" alt="placeholder image" />
         </div>
-        <div className="col-md-6 text-start mt-2">
+        <div className="col-md-6 text-start my-5">
           <h2 >Sign Up</h2>
           <form onSubmit={handleSubmit} >
             <div className="mb-3 mt-3">

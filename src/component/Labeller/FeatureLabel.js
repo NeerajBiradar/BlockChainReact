@@ -1,88 +1,66 @@
 import React from "react";
 import Web3 from 'web3';
-import ABI from "../ABI/ABI";
+import ABI from '../ABI/ABI';
+import 'jquery/dist/jquery.min.js';
+import "datatables.net-dt/js/dataTables.dataTables";
+import "datatables.net-dt/css/jquery.dataTables.min.css";
+import $ from 'jquery';
+import { useEffect, useState } from "react";
 
-let account;
-const web3 = new Web3(window.ethereum);
-web3.eth.requestAccounts().then(accounts => {
-    account = accounts[0];
-    console.log(account.toLowerCase());
-    connectContract();
-});
-
-const connectContract = async () => {
-    const Address = "0xC73b335Daeb32f4df2635aA821A4B8532a18EC9c";
-    window.web3 = await new Web3(window.ethereum);
-    window.contract = await new window.web3.eth.Contract(ABI, Address);
-    ReadFeatureReport();
-}
-
-let FeatCount = 1;
-const Featindex = [];
-const ReadFeatureReport = async () => {
-    const data = await window.contract.methods.SendFeatureReport().call();
-    console.log(data);
-    const table = document.getElementById('Features-Label-Table');
-    for (let i = data.length - 1; i >= 0; i--) {
-        if (data[i].priority == 'default') {
-            const newRow = table.insertRow();
-            const cell1 = newRow.insertCell(0);
-            cell1.innerHTML = FeatCount;
-
-            const cell2 = newRow.insertCell(1);
-            cell2.innerHTML = data[i].feat_title;
-            const cell3 = newRow.insertCell(2);
-            cell3.innerHTML = data[i].feat_description.replace(/\n/g, '<br>');
-            const cell4 = newRow.insertCell(3);
-            const prioritySelect = document.createElement('select');
-            prioritySelect.setAttribute('class', 'form-select mt-1');
-            prioritySelect.setAttribute('id', 'feat-priority-' + FeatCount);
-            Featindex.push(i);
-            prioritySelect.setAttribute('name', 'feat-priority-' + i);
-            prioritySelect.setAttribute('required', '');
-            const priorityOption1 = document.createElement('option');
-            priorityOption1.setAttribute('value', '');
-            priorityOption1.textContent = 'Select Priority';
-            const priorityOption3 = document.createElement('option');
-            priorityOption3.setAttribute('value', 'High');
-            priorityOption3.textContent = 'High';
-            const priorityOption4 = document.createElement('option');
-            priorityOption4.setAttribute('value', 'Medium');
-            priorityOption4.textContent = 'Medium';
-            const priorityOption5 = document.createElement('option');
-            priorityOption5.setAttribute('value', 'Low');
-            priorityOption5.textContent = 'Low';
-            prioritySelect.appendChild(priorityOption1);
-            prioritySelect.appendChild(priorityOption3);
-            prioritySelect.appendChild(priorityOption4);
-            prioritySelect.appendChild(priorityOption5);
-            cell4.appendChild(prioritySelect);
-            FeatCount = FeatCount + 1;
-        }
-    }
-}
-
-
-const FeatArr = [];
-const Featpriority =[];
-
-const SendFeatureReport = async () => {
-    const data = await window.contract.methods.SendFeatureReport().call();
-    for(let i=1 ; i<FeatCount; i++){
-        const priority_value = document.getElementById('feat-priority-' + i).value;
-        if(priority_value != ''){
-            let temp=Featindex[i-1];
-            FeatArr.push(data[temp].feat_title);
-            Featpriority.push(priority_value);
-        }
-    }
-    await window.contract.methods.SetPriorityFeature(FeatArr,Featpriority).send({ from: account });
-    //location.reload();
-}
 
 const FeatureLabel = () => {
+    let [account, setAccount] = useState("");
+    let [contractdata, setContractdata] = useState({});
+    let [data, setData] = useState([]);
+    let { ethereum } = window;
+    let [count, setCount] = useState(false);
+    let [transactionHash, setTransactionHash] = useState("");
+
+    useEffect(() => {
+        async function Connection() {
+            let accounts = await ethereum.request({ method: "eth_requestAccounts" });
+            setAccount(accounts[0]);
+            const web3 = new Web3(window.ethereum);
+            const Address = "0xC73b335Daeb32f4df2635aA821A4B8532a18EC9c";
+            let contract = new web3.eth.Contract(ABI, Address);
+            setContractdata(contract);
+            let temp = await contract.methods.SendFeatureReport().call();
+            temp = temp.filter((val, ind) => {
+                return val.priority === 'default'
+            });
+            console.log(temp, "default");
+            setData(temp);
+            $(function () {
+                $('#Features-Label-Table').DataTable();
+            })
+        }
+        Connection();
+
+    }, []);
+    const FeatArr = [];
+    const Featpriority = [];
+    const SendFeatureReport = async () => {
+        for (let i = 0; i < data.length; i++) {
+            const priority_value = document.getElementById('feature-priority' + i).value;
+            if (priority_value !== '') {
+                FeatArr.push(data[i].feat_title);
+                Featpriority.push(priority_value);
+            }
+        }
+        const result = await contractdata.methods.SetPriorityFeature(FeatArr, Featpriority).send({ from: account });
+        setTransactionHash(result.transactionHash);
+        alert('Transaction Successful');
+    }
+    const handlePriorityChange = (index) => {
+        const priority_value = document.getElementById('feature-priority' + index).value;
+        if (priority_value !== '') {
+            setCount(true);
+        } else {
+            setCount(false);
+        }
+    }
     return (
-        <div className="container">
+        <div className="container table-responsive">
             <table className="table table-light table-hover table-striped mt-3" id="Features-Label-Table">
                 <thead className="table-dark">
                     <tr>
@@ -93,10 +71,42 @@ const FeatureLabel = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr></tr>
+                    {data.reverse().map((val, ind) => {
+                        return (
+                            <tr key={ind}>
+                                <td>{ind + 1}</td>
+                                <td>{val.feat_title}</td>
+                                <td>{val.feat_description.replace(/\n/g, '<br>')}</td>
+                                <td>
+                                    {<div>
+                                        <select className="form-select" onChange={() => handlePriorityChange(ind)} id={"feature-priority" + ind}>
+                                            <option value="">Select Priority</option>
+                                            <option value="High">High</option>
+                                            <option value="Medium">Medium</option>
+                                            <option value="Low">Low</option>
+                                        </select>
+                                    </div>
+
+                                    }
+                                </td>
+                            </tr>
+                        )
+                    })}
                 </tbody>
             </table>
-            <input className="btn btn-primary m-2" type="submit" value="Feature Priority" onClick={SendFeatureReport} />
+            <input className="btn btn-primary m-2" type="submit" value="Feature Priority" onClick={SendFeatureReport} disabled={!count} />
+            {transactionHash && (
+                <div className="row mt-5">
+                    <div className="col-12">
+                        <h2>Transaction Details</h2>
+                        <p>Transaction Hash: {transactionHash}</p>
+                        <button type="submit" className="btn btn-primary mt-1" onClick={() => {
+                            window.location.reload(true);
+                            setTransactionHash("");
+                        }}>Next Priority</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

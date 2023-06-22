@@ -21,13 +21,12 @@ const BugReport = () => {
         }
         Connection(); 
     }, []);
-
     const SendBugReport = async () => {
         const bug_title = document.getElementById("bug-title").value;
         const bug_description = document.getElementById("bug-description").value;
 
         if (account.toLowerCase() === '0xcfca6ef8c30b803ecd38a98c61c52d9d8f9bc8ba' && isFormFilled) {
-            const result = await window.contract.methods.ReciveBugReport(bug_title, bug_description).send({ from: account });
+            const result = await contractdata.methods.ReciveBugReport(bug_title, bug_description).send({ from: account });
             setTransactionHash(result.transactionHash);
             alert('Transaction Successful');
         }

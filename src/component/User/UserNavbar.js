@@ -2,7 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 
-const UserNavbar= () => {
+const UserNavbar= (props) => {
+  const handleClick = () => {
+    props.LoginState(false)
+    //console.log('HII')
+  }
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary bg-light">
       <div className="container-fluid">
@@ -21,7 +25,7 @@ const UserNavbar= () => {
             <li className="nav-item">
               <Link className="nav-link"  to="/DownloadPatch">Download Patch</Link>
             </li>
-            <li className="nav-item">
+            <li className="nav-item" onClick={handleClick}>
               <Link className="nav-link" to="/Login">Logout</Link>
             </li>
           </ul>

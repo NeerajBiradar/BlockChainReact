@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom'; 
 
-const AdminNavbar = () => {
+const AdminNavbar = (props) => {
+
+  const handleClick = () => {
+    props.LoginState(false)
+    //console.log('HII')
+  }
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary bg-light">
       <div className="container-fluid">
@@ -10,7 +15,7 @@ const AdminNavbar = () => {
           <span className="navbar-toggler-icon"></span>
         </button>
         <div className="collapse navbar-collapse" id="navbarScroll">
-          <ul className="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style={{ '--bs-scroll-height': '100px' }}>
+          <ul className="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style={{ '--bs-scroll-height': '100px' }}>   
             <li className="nav-item">
               <Link className="nav-link" to="/PatchRequest">Patch Request</Link>
             </li>
@@ -23,15 +28,11 @@ const AdminNavbar = () => {
             <li className="nav-item">
               <Link className="nav-link" to="/DeployedPatches">Deployed Patches</Link>
             </li>
-            <li className="nav-item">
+            <li className="nav-item" onClick={handleClick}>
               <Link className="nav-link" to="/Login">Logout</Link>
             </li>
           </ul>
-          <form className="d-flex" role="search">
-            <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
-            <button className="btn btn-outline-success" type="submit">Search</button>
-          </form>
-        </div>
+        </div> 
       </div>
     </nav>
   );

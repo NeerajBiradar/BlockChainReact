@@ -3,7 +3,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.min.js';
 import { Link } from 'react-router-dom';
 
-const VerifierNavbar= () => {
+const VerifierNavbar= (props) => {
+  const handleClick = () => {
+    props.LoginState(false)
+    //console.log('HII')
+  }
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary bg-light">
       <div className="container-fluid">
@@ -16,7 +20,7 @@ const VerifierNavbar= () => {
             <li className="nav-item">
               <Link className="nav-link"  to="/VerifyPatch">Verify Patch</Link>
             </li>
-            <li className="nav-item">
+            <li className="nav-item" onClick={handleClick}>
               <Link className="nav-link" to="/Login">Logout</Link>
             </li>
           </ul>

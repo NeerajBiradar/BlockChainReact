@@ -1,124 +1,98 @@
-import React from 'react';
+import React from "react";
 import Web3 from 'web3';
-import ABI from "../ABI/ABI"
+import ABI from '../ABI/ABI';
 import 'jquery/dist/jquery.min.js';
 import "datatables.net-dt/js/dataTables.dataTables"
 import "datatables.net-dt/css/jquery.dataTables.min.css"
 import $ from 'jquery';
+import { useEffect, useState } from "react";
 
 
 const PatchRequestForm = () => {
-  let account;
-  const web3 = new Web3(window.ethereum);
-  web3.eth.requestAccounts().then(accounts => {
-    account = accounts[0];
-    console.log(account.toLowerCase());
-    connectContract();
-  });
+  let [account, setAccount] = useState("");
+  let [contractdata, setContractdata] = useState({});
+  let [bug_data, setBugData] = useState([]);
+  let [feature_data, setFeatureData] = useState([]);
+  let { ethereum } = window;
+  let [Bugcheck, BugisChecked] = useState(false);
+  let [Featurecheck,FeatureisChecked] = useState(false);
+  let [transactionHash, setTransactionHash] = useState("");
 
-  const connectContract = async () => {
-    const Address = "0xC73b335Daeb32f4df2635aA821A4B8532a18EC9c";
-    window.web3 = await new Web3(window.ethereum);
-    window.contract = await new window.web3.eth.Contract(ABI, Address);
-    ReadFeatureReport();
-    ReadBugReport();
-  }
+  useEffect(() => {
+    async function Connection() {
+      let accounts = await ethereum.request({ method: "eth_requestAccounts" });
+      setAccount(accounts[0]);
+      const web3 = new Web3(window.ethereum);
+      const Address = "0xC73b335Daeb32f4df2635aA821A4B8532a18EC9c";
+      let contract = new web3.eth.Contract(ABI, Address);
+      setContractdata(contract);
+      let tempbug_data = await contract.methods.SendBugReport().call();
+      let tempfeature_data = await contract.methods.SendFeatureReport().call();
+      //console.log(tempbug_data);
+      tempbug_data = tempbug_data.filter((val, ind) => {
+        return val.priority != "default" && val.labelbugs == 0
+      });
+      //console.log(tempbug_data);
 
-  let FeatCount = 1;
-  const Featindex = [];
-  const ReadFeatureReport = async () => {
-    const data = await window.contract.methods.SendFeatureReport().call();
-    console.log(data);
-    const table = document.getElementById('Feature-Table');
-    for (let i = data.length - 1; i >= 0; i--) {
-      if (data[i].priority != 'default' && data[i].labelfeatures == 0) {
-        const newRow = table.insertRow();
-        const cell1 = newRow.insertCell(0);
-        cell1.innerHTML = FeatCount;
-        const cell2 = newRow.insertCell(1);
-        cell2.innerHTML = data[i].feat_title;
-        const cell3 = newRow.insertCell(2);
-        cell3.innerHTML = data[i].priority;
-        const cell4 = newRow.insertCell(3);
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.setAttribute('name', 'myCheckbox');
-        checkbox.setAttribute('id', 'checkbox-f-' + FeatCount);
-        Featindex.push(i);
-        const checkboxWrapper = document.createElement('div');
-        checkboxWrapper.classList.add('d-flex', 'justify-content-center', 'mt-1');
-        checkboxWrapper.appendChild(checkbox);
-        cell4.appendChild(checkboxWrapper);
-        FeatCount = FeatCount + 1;
-      }
+      setBugData(tempbug_data);
+      tempfeature_data = tempfeature_data.filter((val, ind) => {
+        return val.priority != "default" && val.labelfeatures == 0
+      });
+      setFeatureData(tempfeature_data);
+
+      $(function () {
+        $('#Bug-Table').DataTable();
+      })
+      $(function () {
+        $('#Feature-Table').DataTable();
+      })
     }
-  }
+    Connection();
 
-  let BugCount = 1;
-  const Bugindex = [];
-  const ReadBugReport = async () => {
-    const data = await window.contract.methods.SendBugReport().call();
-    console.log(data);
-    const table = document.getElementById('Bug-Table');
-    for (let i = data.length - 1; i >= 0; i--) {
-      if (data[i].priority != 'default' && data[i].labelbugs == 0) {
-        const newRow = table.insertRow();
-        const cell1 = newRow.insertCell(0);
-        cell1.innerHTML = BugCount;
-        const cell2 = newRow.insertCell(1);
-        cell2.innerHTML = data[i].bug_title;
-        const cell3 = newRow.insertCell(2);
-        cell3.innerHTML = data[i].priority;
-        const cell4 = newRow.insertCell(3);
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.setAttribute('name', 'myCheckbox');
-        checkbox.setAttribute('id', 'checkbox-b-' + BugCount);
-        Bugindex.push(i);
-        const checkboxWrapper = document.createElement('div');
-        checkboxWrapper.classList.add('d-flex', 'justify-content-center', 'mt-1');
-        checkboxWrapper.appendChild(checkbox);
-        cell4.appendChild(checkboxWrapper);
-        BugCount = BugCount + 1;
-      }
-    }
-  }
+  }, []);
+
   const BugArr = [];
   const FeatArr = [];
   const SendTeamBugReport = async () => {
-    const bug_data = await window.contract.methods.SendBugReport().call();
-    const feat_data = await window.contract.methods.SendFeatureReport().call();
-    for (let i = 1; i < BugCount; i++) {
+    for (let i = 0; i < bug_data.length; i++) {
       const checkbox = document.getElementById('checkbox-b-' + i);
       if (checkbox.checked) {
-        let temp = Bugindex[i - 1];
-        BugArr.push(bug_data[temp].bug_title);
+        BugisChecked(true);
+        BugArr.push(bug_data[i].bug_title);
       }
     }
-    for (let i = 1; i < FeatCount; i++) {
+    for (let i = 0; i < feature_data.length; i++) {
       const checkbox = document.getElementById('checkbox-f-' + i);
       if (checkbox.checked) {
-        let temp = Featindex[i - 1];
-        FeatArr.push(feat_data[temp].feat_title);
+        FeatureisChecked(true);
+        FeatArr.push(feature_data[i].feat_title);
       }
     }
     const patch_name = document.getElementById('Patch-Name').value;
     const deadline = document.getElementById('deadline').value;
     console.log(BugArr, FeatArr, patch_name, deadline);
-    if (account.toLowerCase() == '0x47fb4385f5c205b59033d72330cd9e795626904c') {
-      await window.contract.methods.SetPatch(BugArr, FeatArr, patch_name, deadline).send({ from: account });
-      //location.reload();
-      console.log('Transcation Successful');
+    const temp = BugArr.length + FeatArr.length;
+    if( temp>0 && patch_name.trim()!='' && deadline.trim()!=''){
+      if (account.toLowerCase() == '0x47fb4385f5c205b59033d72330cd9e795626904c') {
+        const result = await contractdata.methods.SetPatch(BugArr, FeatArr, patch_name, deadline).send({ from: account });
+        setTransactionHash(result.transactionHash);
+        alert('Transcation Successful');
+      }
+      else {
+        alert('Transcation Unsuccessful! Admin account does not match');
+      }
     }
-    else {
-      console.log('Transcation Unsuccessful! Admin account does not match');
+    else{
+      alert("Make sure every field is selected");
     }
+    
 
   }
+
   return (
     < div className='container' >
       <div className="row">
-        <div className="col-md-6">
+        <div className="col-md-6 table-responsive">
           <table className="table table-light table-striped mt-3" id="Bug-Table">
             <thead className="table-primary">
               <tr>
@@ -129,11 +103,24 @@ const PatchRequestForm = () => {
               </tr>
             </thead>
             <tbody className="table-group-divider">
-              <tr></tr>
+              {bug_data.reverse().map((val, ind) => {
+                return (
+                  <tr key={ind}>
+                    <td>{ind + 1}</td>
+                    <td>{val.bug_title}</td>
+                    <td>
+                      {val.priority}
+                    </td>
+                    <td>
+                      <input type="checkbox" name="myCheckbox" id={`checkbox-b-${ind}`} />
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
-        <div className="col-md-6">
+        <div className="col-md-6 table-responsive">
           <table className="table table-light table-striped mt-3" id="Feature-Table">
             <thead className="table-primary">
               <tr>
@@ -144,7 +131,20 @@ const PatchRequestForm = () => {
               </tr>
             </thead>
             <tbody className="table-group-divider">
-              <tr></tr>
+              {feature_data.reverse().map((val, ind) => {
+                return (
+                  <tr key={ind}>
+                    <td>{ind + 1}</td>
+                    <td>{val.feat_title}</td>
+                    <td>
+                      {val.priority}
+                    </td>
+                    <td>
+                      <input type="checkbox" name="myCheckbox" id={`checkbox-f-${ind}`}/>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -180,7 +180,19 @@ const PatchRequestForm = () => {
           </div>
         </div>
       </div>
-      <input className="btn btn-primary mt-3" type="submit" value="Request a Patch" onClick={SendTeamBugReport} />
+      <button type="submit" className="btn btn-primary mt-2" onClick={SendTeamBugReport}>Submit</button>
+      {transactionHash && (
+        <div className="row mt-5">
+          <div className="col-12">
+            <h2>Transaction Details</h2>
+            <p>Transaction Hash: {transactionHash}</p>
+            <button type="submit" className="btn btn-primary mt-1" onClick={() => {
+              window.location.reload(true);
+              setTransactionHash("");
+            }}>New Patch</button>
+          </div>
+        </div>
+      )}
     </div >
   );
 }

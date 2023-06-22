@@ -1,9 +1,6 @@
 import React from "react";
 import Web3 from 'web3';
 import ABI from '../ABI/ABI';
-import 'jquery/dist/jquery.min.js';
-import "datatables.net-dt/js/dataTables.dataTables"
-import "datatables.net-dt/css/jquery.dataTables.min.css"
 import $ from 'jquery';
 import { useEffect, useState } from "react";
 
@@ -13,7 +10,7 @@ const RejectedPatch = () => {
     let [contractdata, setContractdata] = useState({});
     let [data, setData] = useState([]);
     let { ethereum } = window;
-    let [time,setTime] = useState('');
+    let [time, setTime] = useState('');
 
     useEffect(() => {
         async function Connection() {
@@ -23,7 +20,7 @@ const RejectedPatch = () => {
             const Address = "0xC73b335Daeb32f4df2635aA821A4B8532a18EC9c";
             let contract = new web3.eth.Contract(ABI, Address);
             setContractdata(contract);
-            let temp = await window.contract.methods.Developer().call();
+            let temp = await contract.methods.Developer().call();
             temp = temp.filter((val, ind) => {
                 return val.check == "Rejected" && val.deploy == 'not'
             });
@@ -50,9 +47,9 @@ const RejectedPatch = () => {
         downloadLink.click();
     }
     async function handleSend(name) {
-        
+
         if (account == '0x47fb4385f5c205b59033d72330cd9e795626904c') {
-            await window.contract.methods.SetDeploy(name, time).send({ from: account });
+            await contractdata.methods.SetDeploy(name, time).send({ from: account });
             //location.reload();
             console.log('Transcation Successful');
         }
@@ -63,7 +60,7 @@ const RejectedPatch = () => {
 
 
     return (
-        <div className="container">
+        <div className="container table-responsive">
             <table className="table table-light table-striped mt-3" id="Rejected-Table">
                 <thead className="table-primary">
                     <tr>
@@ -84,8 +81,12 @@ const RejectedPatch = () => {
                                 <td>{val.patch_name}</td>
                                 <td>
                                     <ul>
-                                        <li>{val.bugs.join('\n')}</li>
-                                        <li>{val.features.join('\n')}</li>
+                                        {val.bugs.map((bug, index) => (
+                                            <li key={`bug-${index}`}>{bug}<br /></li>
+                                        ))}
+                                        {val.features.map((feature, index) => (
+                                            <li key={`feature-${index}`}>{feature}<br /></li>
+                                        ))}
                                     </ul>
                                 </td>
                                 <td>
@@ -97,7 +98,7 @@ const RejectedPatch = () => {
                                 </td>
                                 <td>{val.apprejtime}</td>
                                 <td>
-                                    <input className="mt-3" type="date" onChange={(event)=>{
+                                    <input className="mt-3" type="date" onChange={(event) => {
                                         setTime(event.target.value);
                                     }}></input>
                                 </td>

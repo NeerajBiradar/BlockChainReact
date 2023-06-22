@@ -7,11 +7,14 @@ import Download from './Download';
 import LoginPage from '../Prelogin/LoginPage';
 
 
-function UserRoute() {
+function UserRoute(props) {
+    const handleLogin = (s) =>{
+        props.LoginUpdate(s);
+    }
     return (
         <div className="App">
             <Router>
-                <UserNavbar/>
+                <UserNavbar LoginState={handleLogin}/>
                 <Routes>
                     <Route path='/User' element={<User/>} />
                     <Route path='/FeatureReport' element={<FeatureReport/>} />

@@ -15,16 +15,33 @@ const LoginPage = (props) => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
+            body: JSON.stringify ({
                 email,
                 password,
             }),
         })
         const data = await response.json()
-        console.log(data.status)
+        //console.log(data.status)
         if(data.status === true){
             console.log('Success');
             props.typeUser(data.userType)
+            if(data.userType=="admin"){
+                navigate('/Admin');
+            }
+            if(data.userType=="user"){
+                navigate('/User');
+            }
+            if(data.userType=="labeller"){
+                navigate('/Label');
+            }
+            if(data.userType=="developer"){ 
+                navigate('/Developer');
+            }
+            if(data.userType=="verifier"){
+                navigate('/Verifier');
+            }
+        
+
         }
         else{
             document.getElementById('inCorrect_details').innerHTML = "Login details does not match";
@@ -57,8 +74,7 @@ const LoginPage = (props) => {
                         {/* {error && <div className='error'>{error}</div>} */}
                         <p className="mt-4">By clicking the "Log in" button, you are creating an account, and agree to Group-36's Terms of Service and Privacy Policy</p>
                         <p className="mt-3">Need an account?
-                            <Link to="/signup"> Sign up</Link>
-
+                            <Link to="/Signup"> Sign up</Link>
                         </p>
                         <p className='mt-2 text-dark-emphasis' id="inCorrect_details"></p>
                     </form>

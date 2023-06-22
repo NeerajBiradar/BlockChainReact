@@ -27,8 +27,8 @@ const FeatureReport = () => {
         const feat_title = document.getElementById("feat-title").value;
         const feat_description = document.getElementById("feat-description").value;
 
-        if (account.toLowerCase() === '0xcfca6ef8c30b803ecd38a98c61c52d9d8f9bc8ba') {
-            const result = await window.contract.methods.ReciveFeatureReport(feat_title, feat_description).send({ from: account });
+        if (account.toLowerCase() === '0xcfca6ef8c30b803ecd38a98c61c52d9d8f9bc8ba'  && isFormFilled) {
+            const result = await contractdata.methods.ReciveFeatureReport(feat_title, feat_description).send({ from: account });
             setTransactionHash(result.transactionHash);
             alert("Transcation Successful");
         }
